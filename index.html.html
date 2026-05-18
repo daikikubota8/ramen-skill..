@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>スキルチェック｜ラーメン事業部</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Oswald:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#d32f2f; --red-d:#b71c1c; --red-l:#ff6659;
+  --bg:#f5f5f5; --white:#ffffff; --bg3:#fafafa;
+  --border:#e0e0e0; --border2:#bdbdbd;
+  --text:#212121; --dim:#757575; --dim2:#bdbdbd;
+  --taught:#f57c00; --can:#388e3c; --teach:#1565c0;
+  --taught-bg:#fff3e0; --can-bg:#e8f5e9; --teach-bg:#e3f2fd;
+  --taught-bd:#ffb74d; --can-bd:#81c784; --teach-bd:#64b5f6;
+  --gold:#e65100;
+  --HH:52px;  /* header */
+  --AH:44px;  /* area bar */
+  --PH:38px;  /* person bar */
+  --SH:40px;  /* skill section tabs */
+  --FIXED: calc(var(--HH) + var(--AH) + var(--PH) + var(--SH));
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* ── Fixed top region ── */
+#fixedTop{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;flex-direction:column}
+
+/* header */
+#hdr{
+  height:var(--HH);background:linear-gradient(135deg,#c62828,#e53935,#c62828);
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.h-icon{font-size:20px}
+.h-title{font-family:'Oswald',sans-serif;font-size:18px;letter-spacing:2px;color:#fff}
+.h-sub{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px}
+.h-sync{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.85)}
+.sdot{width:7px;height:7px;border-radius:50%;background:#a5d6a7}
+.sdot.busy{background:#ffcc80}
+.sdot.off{background:rgba(255,255,255,.4)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sdot{animation:blink 2.5s infinite}
+.sdot.busy,.sdot.off{animation:none}
+
+/* area tabs */
+#areaBar{
+  height:var(--AH);background:var(--white);
+  border-bottom:3px solid var(--red);
+  display:flex;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;
+}
+#areaBar::-webkit-scrollbar{display:none}
+
+.atab{
+  flex-shrink:0;display:flex;align-items:center;gap:6px;
+  padding:0 14px;height:100%;
+  font-size:13px;font-weight:500;color:var(--dim);
+  cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-3px;
+  white-space:nowrap;transition:color .15s;
+}
+.atab.active{color:var(--red);border-bottom-color:var(--red);font-weight:700}
+.atab-e{font-size:10px;padding:1px 4px;border:1px solid var(--border2);border-radius:3px;color:var(--dim2);display:none}
+.atab.active .atab-e,.atab:hover .atab-e{display:inline}
+.bar-add{
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  width:42px;height:100%;font-size:24px;color:var(--dim2);cursor:pointer;
+}
+.bar-add:hover{color:var(--red)}
+
+/* person tabs */
+#personBar{
+  height:var(--PH);background:var(--bg3);
+  border-bottom:1px solid var(--border);
+  display:flex;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;
+}
+#personBar::-webkit-scrollbar{display:none}
+
+.ptab{
+  flex-shrink:0;display:flex;align-items:center;gap:5px;
+  padding:0 12px;height:100%;
+  font-size:12px;color:var(--dim);
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;
+  white-space:nowrap;transition:color .15s;
+}
+.ptab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
+.ptab-e{font-size:9px;padding:1px 3px;border:1px solid var(--border2);border-radius:3px;color:var(--dim2);display:none}
+.ptab.active .ptab-e,.ptab:hover .ptab-e{display:inline}
+
+/* skill section tabs */
+#skillTabs{
+  height:var(--SH);background:var(--white);
+  border-bottom:2px solid var(--border);
+  display:flex;
+}
+.stab{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:500;color:var(--dim);
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:all .15s;
+}
+.stab.active{color:var(--teach);border-bottom-color:var(--teach);font-weight:700}
+
+/* ── Scrollable body ── */
+#scrollBody{
+  margin-top:var(--FIXED);
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-bottom:16px;
+}
+
+/* progress */
+.prog-wrap{padding:10px 14px 8px;background:var(--white);border-bottom:1px solid var(--border)}
+.prog-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.prog-pct{font-family:'Oswald',sans-serif;font-size:22px;color:var(--can)}
+.prog-lbl{font-size:10px;color:var(--dim)}
+.prog-track{background:var(--bg);border-radius:5px;height:7px;overflow:hidden;margin-bottom:6px;border:1px solid var(--border)}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--taught),var(--can));border-radius:5px;transition:width .4s ease;width:0}
+.prog-stats{display:flex;gap:12px;flex-wrap:wrap}
+.pst{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim)}
+.pdot{width:7px;height:7px;border-radius:50%}
+
+/* legend */
+.legend{display:flex;gap:10px;padding:7px 14px;background:var(--bg3);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim)}
+.ldot{width:8px;height:8px;border-radius:50%}
+
+/* config notice */
+.cfg{margin:10px 12px;padding:9px 12px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;font-size:11px;color:#e65100;line-height:1.6;display:none}
+
+/* cat header */
+.cat-hdr{
+  padding:8px 14px;font-size:12px;font-weight:700;
+  color:var(--red-d);
+  background:linear-gradient(90deg,rgba(211,47,47,.07),transparent);
+  border-left:4px solid var(--red);margin-top:8px;
+}
+
+/* skill row */
+.skill-row{
+  display:flex;align-items:center;
+  padding:9px 14px;border-bottom:1px solid var(--border);gap:8px;
+  background:var(--white);
+}
+.skill-text{flex:1;font-size:12.5px;line-height:1.6}
+.skill-note{font-size:10px;color:var(--dim);margin-top:1px}
+.checks{display:flex;gap:5px;flex-shrink:0}
+.cg{display:flex;flex-direction:column;align-items:center;gap:2px}
+.chk{
+  width:36px;height:36px;border-radius:9px;
+  border:1.5px solid var(--border2);background:var(--bg3);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:15px;transition:all .15s;
+}
+.chk.t1{background:var(--taught-bg);border-color:var(--taught-bd)}
+.chk.t2{background:var(--can-bg);border-color:var(--can-bd)}
+.chk.t3{background:var(--teach-bg);border-color:var(--teach-bd)}
+.clbl{font-size:8px;text-align:center;line-height:1.1}
+
+/* empty */
+.empty{text-align:center;padding:50px 20px;color:var(--dim)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.empty-btn{
+  margin-top:12px;padding:10px 22px;background:var(--red);border:none;
+  border-radius:8px;color:#fff;font-family:'Noto Sans JP',sans-serif;
+  font-size:13px;cursor:pointer;display:inline-block;
+}
+
+/* modal */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--white);border-radius:14px;
+  padding:22px 18px;width:calc(100% - 40px);max-width:340px;
+  transform:translateY(14px);transition:transform .2s;
+  box-shadow:0 8px 30px rgba(0,0,0,.18);
+}
+.overlay.open .modal{transform:translateY(0)}
+.modal h3{font-family:'Oswald',sans-serif;font-size:15px;color:var(--red);margin-bottom:14px;letter-spacing:1px}
+.modal input{
+  width:100%;background:var(--bg3);border:1.5px solid var(--border2);
+  border-radius:8px;padding:11px 12px;color:var(--text);
+  font-family:'Noto Sans JP',sans-serif;font-size:15px;outline:none;
+}
+.modal input:focus{border-color:var(--red);background:var(--white)}
+.modal-row{display:flex;gap:8px;margin-top:12px}
+.mbtn{flex:1;border:none;border-radius:8px;padding:11px;font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer;font-weight:500}
+.mbtn-ok{background:var(--red);color:#fff}
+.mbtn-cancel{background:var(--bg);color:var(--dim);border:1px solid var(--border2)}
+.mbtn-del{width:100%;margin-top:8px;padding:10px;border-radius:8px;background:#fff5f5;color:#c62828;border:1px solid #ef9a9a;cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif}
+
+/* toast */
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:#323232;border-radius:8px;padding:9px 18px;
+  font-size:12px;color:#fff;opacity:0;transition:all .25s;
+  z-index:400;pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="fixedTop">
+  <!-- header -->
+  <div id="hdr">
+    <div class="h-icon">🍜</div>
+    <div><div class="h-title">SKILL CHECK</div><div class="h-sub">ラーメン事業部</div></div>
+    <div class="h-sync"><div class="sdot" id="sdot"></div><span id="slbl">-</span></div>
+  </div>
+  <!-- area bar -->
+  <div id="areaBar"></div>
+  <!-- person bar -->
+  <div id="personBar"></div>
+  <!-- skill section tabs -->
+  <div id="skillTabs">
+    <div class="stab active" data-tab="hall">🧑‍🍳 ホール</div>
+    <div class="stab" data-tab="kitchen">👨‍🍳 キッチン</div>
+    <div class="stab" data-tab="opcl">🌅 OP・CL</div>
+  </div>
+</div>
+
+<div id="scrollBody">
+  <!-- progress -->
+  <div class="prog-wrap">
+    <div class="prog-top">
+      <span class="prog-lbl">できる達成率（現在のタブ）</span>
+      <span class="prog-pct" id="pPct">0%</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="pFill"></div></div>
+    <div class="prog-stats">
+      <div class="pst"><div class="pdot" style="background:var(--taught)"></div><span id="cT">0</span>&nbsp;教わった</div>
+      <div class="pst"><div class="pdot" style="background:var(--can)"></div><span id="cC">0</span>&nbsp;できる</div>
+      <div class="pst"><div class="pdot" style="background:var(--teach)"></div><span id="cE">0</span>&nbsp;教えられる</div>
+      <div class="pst" style="margin-left:auto"><span id="cN">0</span>&nbsp;項目</div>
+    </div>
+  </div>
+  <!-- legend -->
+  <div class="legend">
+    <div class="leg"><div class="ldot" style="background:var(--taught)"></div>教わった</div>
+    <div class="leg"><div class="ldot" style="background:var(--can)"></div>できる</div>
+    <div class="leg"><div class="ldot" style="background:var(--teach)"></div>教えられる</div>
+    <div class="leg" style="margin-left:auto;font-size:9px;color:var(--dim2)">同ボタンで1段階戻る</div>
+  </div>
+  <div class="cfg" id="cfg">⚠️ Firebase未設定のためローカル保存のみ。FIREBASE_CONFIG を書き換えると同期できます。</div>
+  <!-- skill list -->
+  <div id="skillBody"></div>
+</div>
+
+<!-- modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="mTitle"></h3>
+    <input id="mInput" type="text" maxlength="20">
+    <div class="modal-row">
+      <button class="mbtn mbtn-cancel" id="mCancel">キャンセル</button>
+      <button class="mbtn mbtn-ok" id="mOk">保存</button>
+    </div>
+    <button class="mbtn-del" id="mDel" style="display:none">🗑 削除する</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ══════════════════════════════════════
+//  🔥 Firebase 設定（ここを書き換える）
+// ══════════════════════════════════════
+const FB_CFG = {
+  apiKey:"YOUR_API_KEY",
+  authDomain:"YOUR_PROJECT.firebaseapp.com",
+  databaseURL:"https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId:"YOUR_PROJECT",
+  storageBucket:"YOUR_PROJECT.appspot.com",
+  messagingSenderId:"YOUR_SENDER_ID",
+  appId:"YOUR_APP_ID"
+};
+// ══════════════════════════════════════
+
+// ── スキルマスタ ───────────────────────
+const SKILLS = {
+  hall:{ label:'ホール', cats:[
+    { name:'ご案内', items:[
+      {t:'外で入店を迷っているお客様に声掛けができる'},
+      {t:'来店に気づき、入口の扉を先に開けることができる'},
+      {t:'ご来店時に明るく挨拶ができる'},
+      {t:'お客様の人数を正確に聞き取ることができる'},
+      {t:'混雑状況に応じたご案内や、お客様に応じたご案内ができる', n:'※ お子様連れ、ご年配など'},
+      {t:'満席時に門前払いせず、気持ち良くお並びいただけるお声かけができる'},
+      {t:'食券受け取り時、お客様に注文内容を復唱し確認することができる'},
+      {t:'特殊なご要望や、店舗で決まっている必要事項を食券に記入し、キッチンへ共有することができる'},
+      {t:'状況に応じた元気な声でキッチンにオーダーを通すことができる'},
+    ]},
+    { name:'提供', items:[
+      {t:'提供前に量、盛り付けなど見た目の確認ができる'},
+      {t:'商品名を正しく伝えてから提供することができる'},
+      {t:'正規の方向でお客様に提供ができる'},
+      {t:'提供の優先順位の判断ができる'},
+      {t:'商品にあわせた補足や注意事項の説明ができる', n:'※ つけ麺・まぜそば等'},
+      {t:'提供時に＋αで持っていくものを把握できている', n:'※ 取り皿・お子様皿の用意など'},
+      {t:'提供時に「熱いのでお気を付けください」とお声掛けができる'},
+      {t:'提供時にまだ提供が終わっていない商品がある際に、「○○はもう少々お待ちください」とお声掛けができる'},
+      {t:'全商品提供終了後に「ごゆっくりどうぞ」と笑顔でお声掛けができる'},
+    ]},
+    { name:'バッシング', items:[
+      {t:'メニュー・箸・お冷ポット・調味料等の適切なテーブルセットができる'},
+      {t:'拭き残しがなく拭き上げすることができる'},
+      {t:'テーブルの下が汚れていないか確認することができる'},
+      {t:'片付けが終わったら必要に応じて「○○卓OKです」と共有することができる'},
+    ]},
+    { name:'お客様対応', items:[
+      {t:'お客様対応時、常に口角を上げた表情で接客することができる'},
+      {t:'お客様対応時、お客様の目を見ながら接客することができる'},
+      {t:'お客様の呼びかけにすぐに返事やアイコンタクトができる'},
+      {t:'複数対応時に「少々お待ちください」など、簡易返答ができる'},
+      {t:'定期的にお客様の状況を確認し、必要があれば自ら気付きお声掛けや対応ができる'},
+      {t:'手が空いた時に自ら仕事を探し行動することができる'},
+      {t:'クレーム時状況に応じた誠実な対応、上長に繋ぐなどの判断ができる'},
+    ]},
+    { name:'ラストオーダー', items:[
+      {t:'追加注文のお伺いができる'},
+    ]},
+    { name:'お見送り', items:[
+      {t:'出口まで行き、お見送りができる', n:'※ お客様が振り返りたくなるようなお見送り'},
+      {t:'+αの声掛けができる', n:'※ 雨天時 "お足元お気をつけください"など'},
+      {t:'請求、クレームなどがあった際に謝罪ができる'},
+    ]},
+    { name:'トイレチェック・清掃', items:[
+      {t:'決められた時間にチェック・清掃ができる'},
+      {t:'トイレチェック表の記入ができる'},
+      {t:'正しく重点箇所を清掃できる', n:'※ 便器、床、手洗い場など'},
+      {t:'ペーパーなど備品の補充ができる'},
+    ]},
+    { name:'券売機操作', items:[
+      {t:'売り切れ操作ができる'},{t:'返金操作ができる'},{t:'領収書の発行操作ができる'},
+    ]},
+    { name:'電話対応', items:[
+      {t:'店舗名を正しく発し、正しい言葉遣いで明るくはきはきと対応できる'},
+      {t:'お客様の問い合わせに対し、必要があればメモを取り適切な対応ができる'},
+    ]},
+    { name:'アプリ', items:[
+      {t:'アプリ登録の説明ができる'},
+      {t:'各クーポンの使用処理ができる'},
+      {t:'初回登録特典・その他特典は大まかな説明ができる'},
+    ]},
+  ]},
+  kitchen:{ label:'キッチン', cats:[
+    { name:'麺場', items:[
+      {t:'各商品をレシピ通りに調理できる'},
+      {t:'レードルを正確に使用することができる'},
+      {t:'スープを良い状態で管理・注ぐことができる'},
+      {t:'麺を茹で麺機の中で十分に混ぜることができる'},
+      {t:'麺上げの際に十分な湯切りができる'},
+      {t:'商品に応じて器を温めたり、冷やしたりと使い分けができる'},
+      {t:'麺線を綺麗に整えることができる'},
+      {t:'状況に応じた必要なスピードで回転させることができる', n:'※ 先の食券優先など'},
+      {t:'複数杯同時作製した際に、必要に応じ提供優先順位の判断ができる'},
+      {t:'在庫管理をし、必要な準備・補充ができる'},
+      {t:'トッピング完了時に、見た目や盛り付けの確認・修正ができる'},
+      {t:'トッピング修正時、手ではなく箸やトングで行うことができる'},
+      {t:'完成後に「提供お願いします」など声出しができる'},
+    ]},
+    { name:'トッピング', items:[
+      {t:'各商品をレシピ通りにトッピングできる'},
+      {t:'オーダー毎の必要な分のチャーシューの準備ができる（正確なチャーシューカットができる）'},
+      {t:'必要な分の味玉を十分に温めることができる'},
+      {t:'各商品に応じた正しいトッピングの配置で綺麗にトッピングができる'},
+      {t:'商品に応じて器を温めたり、冷やしたりと使い分けができる'},
+      {t:'麺線を綺麗に整えることができる'},
+      {t:'各種単品のトッピングを正確な量で準備できる'},
+      {t:'複数杯同時作製した際に、必要に応じ優先順位の判断ができる'},
+      {t:'トッピングをしながら、手隙で周りのポジションのフォローに入れる'},
+      {t:'在庫管理をし、必要な準備・補充ができる'},
+      {t:'トッピング完了時に、見た目や盛り付けの確認・修正ができる'},
+      {t:'トッピング修正時、手ではなく箸やトングで行うことができる'},
+      {t:'完成後に「提供お願いします」など声出しができる'},
+    ]},
+    { name:'サイド', items:[
+      {t:'各商品をレシピ通りに調理できる'},
+      {t:'ラーメンのご提供に合わせて調理ができる'},
+      {t:'複数のオーダーを優先順位をつけ調理できる'},
+      {t:'各種ご飯ものの調理ができる'},
+      {t:'炒飯の調理ができる'},{t:'餃子の調理ができる'},{t:'各種ドリンクの作製ができる'},
+      {t:'デシャップで各種トッピングの準備ができる', n:'※ 油党'},
+      {t:'サイドの調理をしながら、手隙で周りのポジションのフォローに入れる'},
+      {t:'在庫管理をし、必要な準備・補充ができる'},
+      {t:'商品完成時に、見た目や盛り付けの確認・修正ができる'},
+      {t:'完成後に「提供お願いします」など声出しができる'},
+    ]},
+    { name:'仕込み', items:[
+      {t:'スープの仕込みができる'},{t:'白湯スープの準備ができる'},{t:'味噌スープの準備ができる'},
+      {t:'味玉の仕込みができる'},{t:'チャーシューの味入ができる'},
+      {t:'チャーシューの火入れ・吊るしができる'},{t:'チャーシューのスライス・カットができる'},
+      {t:'親子用鶏肉の炙り・カットができる'},{t:'玉ねぎのカットができる'},{t:'レモンのカットができる'},
+      {t:'漬け卵黄の仕込みができる'},{t:'鶏油の仕込みができる'},{t:'鰹鶏油の仕込みができる'},
+      {t:'辛油の仕込みができる'},{t:'海老油の仕込みができる'},{t:'背脂の仕込みができる'},
+      {t:'背脂の仕込みができる'},
+      {t:'芝麻醬の仕込みができる'},{t:'スープ割の仕込みができる'},{t:'白い粉の仕込みができる'},
+      {t:'赤い油の仕込みができる'},{t:'親子丼のたれの仕込みができる'},
+      {t:'炒飯の具の仕込みができる'},{t:'炒飯鶏油の仕込みができる'},
+      {t:'お米の炊飯ができる'},{t:'炒飯の米の仕込みができる'},
+    ]},
+    { name:'洗い場', items:[
+      {t:'グラス、食器を正しく洗うことができる'},{t:'優先順位を考え、洗い物ができる'},
+    ]},
+    { name:'衛生・危機管理意識', items:[
+      {t:'作業前に手指、調理器具の消毒ができる'},
+      {t:'ダスター、まな板の色分けを把握・説明することができる'},
+      {t:'作業台、シンクを綺麗に使用することができる'},
+      {t:'生肉、加熱肉、を正しく取り扱うことができる'},
+      {t:'使用前に食材の状態を確認することができる'},
+      {t:'異物混入、アレルゲンに関する配慮ができる'},
+      {t:'兄弟、HTの把握、管理ができる'},
+      {t:'120分タイマーの意味を理解し、適切に運用できる'},
+      {t:'キッチン衛生記録表（120分）の記入ができる'},
+      {t:'調理器具の安全な取り扱いができる'},
+    ]},
+  ]},
+  opcl:{ label:'OP・CL', cats:[
+    { name:'オープン作業 — ホール', items:[
+      {t:'テーブル拭き上げ・調味料・箸・紙エプロン等の確認・補充ができる'},
+      {t:'店内の掃き掃除、店前に看板等を設置することができる'},
+      {t:'トイレ掃除ができる'},
+      {t:'レジの立ち上げができる', n:'※ 看板、灰皿設置など'},
+      {t:'入金ができる'},
+    ]},
+    { name:'オープン作業 — キッチン', items:[
+      {t:'食洗器の起動ができる'},
+      {t:'茹で麺機、炒飯マシーン、餃子焼き機の点火・立ち上げができる'},
+      {t:'スープの仕込み・準備ができる', n:'※PBの店舗は準備'},
+      {t:'各店朝に行う仕込みができる'},
+      {t:'営業の準備・セッティングができる'},
+      {t:'納品物を正しい納品場所に納品できる'},
+    ]},
+    { name:'クローズ作業 — ホール', items:[
+      {t:'テーブル拭き上げ・調味料・箸・紙エプロン等の補充ができる', n:'※ 拭き上げ、備品交換など'},
+      {t:'店内の掃き掃除、店前の看板等をしまうことができる'},
+      {t:'トイレ清掃ができる'},
+      {t:'レジ締めができる'},
+    ]},
+    { name:'クローズ作業 — キッチン', items:[
+      {t:'食洗器の締めができる'},
+      {t:'洗ったものを正しい場所に戻すことができる'},
+      {t:'コールドテーブルの清掃ができる'},
+      {t:'シンク・シンク下の清掃ができる'},
+      {t:'食材を正しい場所にしまうことができる'},
+      {t:'床掃除ができる'},
+      {t:'作業台、デシャップの拭き上げができる'},
+      {t:'炒飯マシーンを洗うことができる'},
+      {t:'餃子焼き機の清掃ができる'},
+      {t:'炊飯器の拭き上げができる'},
+      {t:'冷蔵庫・冷凍庫の側面(必要であれば中も)の清掃ができる'},
+      {t:'厨房壁の拭き上げ・清掃ができる'},
+      {t:'ゴミ箱の清掃ができる'},
+      {t:'タブレットの拭き上げができる'},
+      {t:'グリストラップの清掃ができる'},
+      {t:'ゴミ出し、袋交換ができる'},
+      {t:'ダスターの洗浄ができる'},
+      {t:'HTの確認、ロス廃棄表の記入ができる'},
+      {t:'HACCP関連書類の記入ができる'},
+      {t:'翌日の準備・補充ができる'},
+      {t:'仕込みの確認、解凍ができる'},
+    ]},
+  ]},
+};
+
+// ── utils ────────────────────────────────
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const sid=(t,c,i)=>`${t}_${c}_${i}`;
+
+// ── state ────────────────────────────────
+let S={areas:[],persons:{},checks:{}};
+let curArea=null, curPerson=null, curTab='hall';
+let db=null, fbOK=false;
+
+// ── Firebase ─────────────────────────────
+function initFB(){
+  try{
+    if(FB_CFG.apiKey==='YOUR_API_KEY'){ document.getElementById('cfg').style.display='block'; return; }
+    const app=initializeApp(FB_CFG); db=getDatabase(app); fbOK=true;
+  }catch(e){ document.getElementById('cfg').style.display='block'; }
+}
+let saveTimer=null;
+function save(){
+  lSave();
+  if(!fbOK) return;
+  syncState('busy');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{ await set(ref(db,'ramen_skill/data'),S); syncState('ok'); }
+    catch(e){ syncState('off'); }
+  },700);
+}
+function subscribe(){
+  if(!fbOK) return;
+  onValue(ref(db,'ramen_skill/data'),snap=>{
+    const d=snap.val();
+    if(d){ S={areas:d.areas||[],persons:d.persons||{},checks:d.checks||{}}; fixCursor(); renderAll(); }
+    syncState('ok');
+  });
+}
+function syncState(s){
+  document.getElementById('sdot').className='sdot'+(s==='busy'?' busy':s==='off'?' off':'');
+  document.getElementById('slbl').textContent=s==='busy'?'同期中...':s==='off'?'オフライン':'同期済み';
+}
+function lSave(){ localStorage.setItem('ramen_v3',JSON.stringify(S)); }
+function lLoad(){ try{ return JSON.parse(localStorage.getItem('ramen_v3')||'null'); }catch(e){return null;} }
+
+function fixCursor(){
+  if(curArea&&!S.areas.find(a=>a.id===curArea)) curArea=null;
+  if(!curArea&&S.areas.length) curArea=S.areas[0].id;
+  if(curPerson){ const ps=S.persons[curArea]||[]; if(!ps.find(p=>p.id===curPerson)) curPerson=null; }
+  if(!curPerson&&curArea){ const ps=S.persons[curArea]||[]; if(ps.length) curPerson=ps[0].id; }
+}
+
+// ── render ───────────────────────────────
+function renderAll(){ renderAreas(); renderPersons(); renderBody(); renderProgress(); }
+
+function renderAreas(){
+  const bar=document.getElementById('areaBar');
+  bar.innerHTML='';
+  S.areas.forEach(a=>{
+    const el=document.createElement('div');
+    el.className='atab'+(a.id===curArea?' active':'');
+    el.innerHTML=`<span>${esc(a.name)}</span><span class="atab-e">✎</span>`;
+    el.querySelector('.atab-e').addEventListener('click',e=>{ e.stopPropagation(); openEditArea(a.id); });
+    el.addEventListener('click',()=>{ curArea=a.id; curPerson=null; fixCursor(); renderAll(); });
+    bar.appendChild(el);
+  });
+  const btn=document.createElement('div');
+  btn.className='bar-add'; btn.textContent='+'; btn.title='エリア追加';
+  btn.addEventListener('click',openAddArea);
+  bar.appendChild(btn);
+}
+
+function renderPersons(){
+  const bar=document.getElementById('personBar');
+  bar.innerHTML='';
+  if(!curArea){
+    bar.innerHTML='<div style="padding:0 14px;height:100%;display:flex;align-items:center;font-size:11px;color:var(--dim)">← エリアを追加してください</div>';
+    return;
+  }
+  const ps=S.persons[curArea]||[];
+  ps.forEach(p=>{
+    const el=document.createElement('div');
+    el.className='ptab'+(p.id===curPerson?' active':'');
+    el.innerHTML=`<span>${esc(p.name)}</span><span class="ptab-e">✎</span>`;
+    el.querySelector('.ptab-e').addEventListener('click',e=>{ e.stopPropagation(); openEditPerson(p.id); });
+    el.addEventListener('click',()=>{ curPerson=p.id; renderAll(); });
+    bar.appendChild(el);
+  });
+  const btn=document.createElement('div');
+  btn.className='bar-add'; btn.textContent='+'; btn.title='スタッフ追加';
+  btn.addEventListener('click',openAddPerson);
+  bar.appendChild(btn);
+}
+
+function renderBody(){
+  const body=document.getElementById('skillBody');
+  if(!curArea){
+    body.innerHTML='<div class="empty"><div class="empty-icon">🗂</div><div>まず右上の「+」でエリアを追加してください</div></div>';
+    return;
+  }
+  if(!curPerson){
+    body.innerHTML='<div class="empty"><div class="empty-icon">👤</div><div>スタッフ名の右の「+」で追加してください</div></div>';
+    return;
+  }
+  const chks=((S.checks[curArea]||{})[curPerson])||{};
+  const td=SKILLS[curTab];
+  let html='';
+  td.cats.forEach((cat,ci)=>{
+    html+=`<div class="cat-hdr">${esc(cat.name)}</div>`;
+    cat.items.forEach((item,ii)=>{
+      const id=sid(curTab,ci,ii), v=chks[id]||0;
+      const note=item.n?`<div class="skill-note">${esc(item.n)}</div>`:'';
+      html+=`<div class="skill-row">
+        <div class="skill-text">${esc(item.t)}${note}</div>
+        <div class="checks">
+          <div class="cg">
+            <button class="chk ${v>=1?'t1':''}" data-id="${id}" data-lv="1">${v>=1?'📖':''}</button>
+            <div class="clbl" style="color:var(--taught)">教わった</div>
+          </div>
+          <div class="cg">
+            <button class="chk ${v>=2?'t2':''}" data-id="${id}" data-lv="2">${v>=2?'✅':''}</button>
+            <div class="clbl" style="color:var(--can)">できる</div>
+          </div>
+          <div class="cg">
+            <button class="chk ${v>=3?'t3':''}" data-id="${id}" data-lv="3">${v>=3?'⭐':''}</button>
+            <div class="clbl" style="color:var(--teach)">教えられる</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  body.innerHTML=html;
+
+  // イベント委譲でchkボタン処理
+  body.querySelectorAll('.chk').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.dataset.id, lv=parseInt(btn.dataset.lv);
+      if(!S.checks[curArea]) S.checks[curArea]={};
+      if(!S.checks[curArea][curPerson]) S.checks[curArea][curPerson]={};
+      const cur=S.checks[curArea][curPerson][id]||0;
+      S.checks[curArea][curPerson][id]=(cur===lv)?lv-1:lv;
+      save(); renderBody(); renderProgress();
+    });
+  });
+}
+
+function renderProgress(){
+  if(!curArea||!curPerson){
+    document.getElementById('pPct').textContent='0%';
+    document.getElementById('pFill').style.width='0%';
+    ['cT','cC','cE','cN'].forEach(id=>document.getElementById(id).textContent='0');
+    return;
+  }
+  const chks=((S.checks[curArea]||{})[curPerson])||{};
+  const td=SKILLS[curTab];
+  let total=0,taught=0,can=0,teach=0;
+  td.cats.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{
+    total++;
+    const v=chks[sid(curTab,ci,ii)]||0;
+    if(v>=1)taught++; if(v>=2)can++; if(v>=3)teach++;
+  }));
+  const pct=total?Math.round(can/total*100):0;
+  document.getElementById('pPct').textContent=pct+'%';
+  document.getElementById('pFill').style.width=pct+'%';
+  document.getElementById('cT').textContent=taught;
+  document.getElementById('cC').textContent=can;
+  document.getElementById('cE').textContent=teach;
+  document.getElementById('cN').textContent=total;
+}
+
+// ── skill tab switch ──────────────────────
+document.querySelectorAll('.stab').forEach(el=>{
+  el.addEventListener('click',()=>{
+    curTab=el.dataset.tab;
+    document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    renderBody(); renderProgress();
+  });
+});
+
+// ── Modal ────────────────────────────────
+let mOK=null,mDEL=null;
+function openModal(title,placeholder,val,okCb,delCb){
+  document.getElementById('mTitle').textContent=title;
+  document.getElementById('mInput').placeholder=placeholder;
+  document.getElementById('mInput').value=val||'';
+  document.getElementById('mDel').style.display=delCb?'block':'none';
+  mOK=okCb; mDEL=delCb;
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('mInput').focus(),80);
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); mOK=mDEL=null; }
+function doOK(){
+  const v=document.getElementById('mInput').value.trim();
+  if(!v){ toast('名前を入力してください'); return; }
+  mOK&&mOK(v); closeModal();
+}
+function doDEL(){ mDEL&&mDEL(); closeModal(); }
+
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('overlay')) closeModal(); });
+document.getElementById('mCancel').addEventListener('click',closeModal);
+document.getElementById('mOk').addEventListener('click',doOK);
+document.getElementById('mDel').addEventListener('click',doDEL);
+document.getElementById('mInput').addEventListener('keydown',e=>{ if(e.key==='Enter') doOK(); });
+
+// ── Area CRUD ─────────────────────────────
+function openAddArea(){
+  openModal('エリアを追加','例：渋谷エリア','',name=>{
+    const id=uid();
+    S.areas.push({id,name});
+    S.persons[id]=[]; S.checks[id]={};
+    curArea=id; curPerson=null;
+    save(); renderAll();
+  });
+}
+function openEditArea(id){
+  const a=S.areas.find(x=>x.id===id); if(!a) return;
+  openModal('エリアを編集','エリア名',a.name,
+    name=>{ a.name=name; save(); renderAll(); },
+    ()=>{
+      if(!confirm(`「${a.name}」を削除しますか？\nスタッフデータもすべて削除されます。`)) return;
+      S.areas=S.areas.filter(x=>x.id!==id);
+      delete S.persons[id]; delete S.checks[id];
+      if(curArea===id){ curArea=S.areas[0]?.id||null; curPerson=null; }
+      save(); renderAll();
+    }
+  );
+}
+
+// ── Person CRUD ───────────────────────────
+function openAddPerson(){
+  if(!curArea){ toast('エリアを選択してください'); return; }
+  openModal('スタッフを追加','例：山田 太郎','',name=>{
+    const id=uid();
+    if(!S.persons[curArea]) S.persons[curArea]=[];
+    S.persons[curArea].push({id,name});
+    if(!S.checks[curArea]) S.checks[curArea]={};
+    S.checks[curArea][id]={};
+    curPerson=id;
+    save(); renderAll();
+  });
+}
+function openEditPerson(id){
+  if(!curArea) return;
+  const ps=S.persons[curArea]||[];
+  const p=ps.find(x=>x.id===id); if(!p) return;
+  openModal('スタッフを編集','名前',p.name,
+    name=>{ p.name=name; save(); renderAll(); },
+    ()=>{
+      if(!confirm(`「${p.name}」のデータをすべて削除しますか？`)) return;
+      S.persons[curArea]=ps.filter(x=>x.id!==id);
+      if(S.checks[curArea]) delete S.checks[curArea][id];
+      if(curPerson===id){ curPerson=S.persons[curArea][0]?.id||null; }
+      save(); renderAll();
+    }
+  );
+}
+
+// ── toast ────────────────────────────────
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ── boot ─────────────────────────────────
+initFB();
+const local=lLoad();
+if(local){ S={areas:local.areas||[],persons:local.persons||{},checks:local.checks||{}}; }
+fixCursor();
+
+if(fbOK){
+  subscribe(); // onValue が renderAll を呼ぶ
+} else {
+  renderAll();
+  syncState('off');
+}
+</script>
+</body>
+</html>
