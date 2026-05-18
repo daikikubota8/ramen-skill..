@@ -274,14 +274,20 @@ import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebase
 // ══════════════════════════════════════
 //  🔥 Firebase 設定（ここを書き換える）
 // ══════════════════════════════════════
-const FB_CFG = {
-  apiKey:"YOUR_API_KEY",
-  authDomain:"YOUR_PROJECT.firebaseapp.com",
-  databaseURL:"https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId:"YOUR_PROJECT",
-  storageBucket:"YOUR_PROJECT.appspot.com",
-  messagingSenderId:"YOUR_SENDER_ID",
-  appId:"YOUR_APP_ID"
+const firebaseConfig = {
+  apiKey: "AIzaSyCg6dEnBEMDoaiDO33h_Xary16LYNSkexQ",
+  authDomain: "ramen-skill.firebaseapp.com",
+  databaseURL: "https://ramen-skill-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ramen-skill",
+  storageBucket: "ramen-skill.firebasestorage.app",
+  messagingSenderId: "58535168851",
+  appId: "1:58535168851:web:77b785352f9ca0cfbcefa6",
+  measurementId: "G-G0D4TJV2R5"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 };
 // ══════════════════════════════════════
 
